@@ -10,13 +10,18 @@
 #define R_LED 6 //Right dashboard blinker
 #define L_LED 5 //Left dashboard blinker
 #define BRK_L_HIGH 4 //Left back lights
+#define WIPER_OUTPUT 3 //Wipers output (servo motor)
 #define BRK_R_HIGH 2 //Right back lights
 
 int ReadTimeInterval = 250;
 int BlinkTimeInterval = 500;
 boolean BlinkOn = false;
+boolean HazLight = false;
+boolean WiperDirection = false; //true is up, false is down
+int WiperPosition = 0;
 long CurrentTime = 0;
-long ComparisonTime = 0;
+long BlinkComparisonTime = 0;
+long WiperTime = 0;
 
 void setup(){
   pinMode(DRIVING_LIGHTS, OUTPUT);
@@ -31,8 +36,48 @@ void setup(){
   pinMode(R_LED, OUTPUT);
   pinMode(L_LED, OUTPUT);
   pinMode(BRK_L_HIGH, OUTPUT);
+  pinMode(WIPER_OUTPUT, OUTPUT);
   pinMode(BRK_R_HIGH, OUTPUT);
   digitalWrite(DRIVING_LIGHTS, HIGH);
+}
+
+int Set_Wiper_Position(int WiperPosition, boolean Direction){
+  if ((WiperPosition == 0) && (digitalRead(WIPER_SWITCH) == LOW)){
+    WiperPosition = 0;
+  }
+  else if (Direction){
+    WiperPosition++;
+  }
+  else if (!Direction){
+    WiperPosition--;  
+  }
+  return WiperPosition;
+  analogWrite(WIPER_OUTPUT, WiperPosition);
+}
+
+boolean Wiper_Direction(int WiperPosition, boolean Direction){
+  if (digitalRead(WIPER_SWITCH) == HIGH){
+    if (Direction){
+      if (WiperPosition < 256){
+        Direction = true;  
+      }
+      else{
+        Direction = false;  
+      }
+    }
+    else{
+      if (WiperPosition > 0){
+        Direction = false;  
+      }
+      else{
+        Direction = true;  
+      }
+    }
+  }
+  else{
+    Direction = false;
+  }
+  return Direction;
 }
 
 void Horn(){
@@ -59,17 +104,40 @@ void Right_Turn_Light(boolean BlinkingOn, boolean HazLightsOn){
   }
 }
 
+void Left_Turn_Light(boolean BlinkingOn, boolean HazLightsOn){
+  if (!HazLightsOn){
+    if ((digitalRead(L_SWITCH) == HIGH) && (BlinkingOn)){
+      digitalWrite(L_LED, HIGH);
+      digitalWrite(BLINK_L, HIGH);
+      digitalWrite(BRK_L_HIGH, HIGH);  
+    }
+    else{
+      digitalWrite(L_LED, LOW);
+      digitalWrite(BLINK_L, LOW);
+      digitalWrite(BRK_L_HIGH, LOW);  
+    }
+  }
+}
+
 boolean Hazard_Lights(boolean BlinkingOn){
   boolean HazLightsOn;
-  if ((digitalRead(HAZ_SWITCH) == HIGH) && (BlinkingOn)){
+  if (digitalRead(HAZ_SWITCH) == HIGH){
     HazLightsOn = true;
     if (BlinkingOn){
-     digitalWrite(R_LED, HIGH);
-     digitalWrite(BLINK_R, HIGH);
-     digitalWrite(BRK_R_HIGH, HIGH);
-     digitalWrite(L_LED, HIGH);
-     digitalWrite(BLINK_L, HIGH);
-     digitalWrite(BRK_L_HIGH, HIGH);
+      digitalWrite(R_LED, HIGH);
+      digitalWrite(BLINK_R, HIGH);
+      digitalWrite(BRK_R_HIGH, HIGH);
+      digitalWrite(L_LED, HIGH);
+      digitalWrite(BLINK_L, HIGH);
+      digitalWrite(BRK_L_HIGH, HIGH);
+    }
+    else{
+      digitalWrite(R_LED, LOW);
+      digitalWrite(BLINK_R, LOW);
+      digitalWrite(BRK_R_HIGH, LOW);
+      digitalWrite(L_LED, LOW);
+      digitalWrite(BLINK_L, LOW);
+      digitalWrite(BRK_L_HIGH, LOW);
     }
   }
   else{
@@ -86,11 +154,20 @@ boolean Hazard_Lights(boolean BlinkingOn){
 
 void loop(){
   CurrentTime = millis();
-  if ((CurrentTime - ComparisonTime) < BlinkTimeInterval){
+  if ((CurrentTime - BlinkComparisonTime) < BlinkTimeInterval){
     BlinkOn = true;
-    ComparisonTime = CurrentTime;
+    BlinkComparisonTime = CurrentTime;
   }
   else{
     BlinkOn = false;
+  }
+  Horn();
+  HazLight = Hazard_Lights(BlinkOn);
+  Right_Turn_Light(BlinkOn, HazLight);
+  Left_Turn_Light(BlinkOn, HazLight);
+  if (CurrentTime > (WiperTime + 2)){
+    WiperDirection = Wiper_Direction(WiperPosition, WiperDirection);
+    WiperPosition = Set_Wiper_Position(WiperPosition, WiperDirection);
+    WiperTime = CurrentTime;
   }
 }
