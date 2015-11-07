@@ -14,6 +14,7 @@
 #define WIPER_OUTPUT 3 //Wipers output (servo motor)
 #define BRK_R_HIGH 2 //Right back lights
 //#define BRK_INPUT SOMETHING //Break input
+//Check the position of these inputs and outputs on the board
 */
 
 #define HORN 0 //Horn
@@ -190,7 +191,9 @@ void loop(){
   CurrentTime = millis();
   if ((CurrentTime - BlinkComparisonTime) > BlinkTimeInterval){
     BlinkOn = true;
-    BlinkComparisonTime = CurrentTime;
+    if ((CurrentTime - BlinkComparisonTime) > 2*(BlinkTimeInterval)){
+      BlinkComparisonTime = CurrentTime;
+    }
   }
   else{
     BlinkOn = false;
