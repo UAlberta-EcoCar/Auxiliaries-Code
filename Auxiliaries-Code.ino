@@ -1,3 +1,4 @@
+/*
 #define DRIVING_LIGHTS A5 //Driving lights
 #define HORN A4 //Horn
 #define BLINK_L A3 //Left front lights
@@ -12,6 +13,24 @@
 #define BRK_L_HIGH 4 //Left back lights
 #define WIPER_OUTPUT 3 //Wipers output (servo motor)
 #define BRK_R_HIGH 2 //Right back lights
+//#define BRK_INPUT SOMETHING //Break input
+*/
+
+#define HORN 0 //Horn
+#define BLINK_L 1 //Left front lights
+#define BLINK_R 2 //Right front lights
+#define WIPER_SWITCH 3 //Wiper switch
+#define HAZ_SWITCH 4 //Hazard lights switch
+#define HORN_SWITCH 5 //Horn switch
+#define L_SWITCH 6 //Left turn switch
+#define R_SWITCH 7 //Right turn switch
+#define R_LED 8 //Right dashboard blinker
+#define L_LED 9 //Left dashboard blinker
+#define BRK_L_HIGH 10 //Left back lights
+#define WIPER_OUTPUT 11 //Wipers output (servo motor)
+#define BRK_R_HIGH 12 //Right back lights
+#define BRK_INPUT 13 //Break input
+//Driving lights are not defined for the testing purposes
 
 int ReadTimeInterval = 250;
 int BlinkTimeInterval = 500;
@@ -24,7 +43,7 @@ long BlinkComparisonTime = 0;
 long WiperTime = 0;
 
 void setup(){
-  pinMode(DRIVING_LIGHTS, OUTPUT);
+  //pinMode(DRIVING_LIGHTS, OUTPUT); not defined in testing purposes
   pinMode(HORN, OUTPUT);
   pinMode(BLINK_L, OUTPUT);
   pinMode(BLINK_R, OUTPUT);
@@ -38,7 +57,22 @@ void setup(){
   pinMode(BRK_L_HIGH, OUTPUT);
   pinMode(WIPER_OUTPUT, OUTPUT);
   pinMode(BRK_R_HIGH, OUTPUT);
-  digitalWrite(DRIVING_LIGHTS, HIGH);
+  //pinMode(BRK_INPUT, INPUT);
+  //digitalWrite(DRIVING_LIGHTS, HIGH); Taken out for testing purposes
+}
+
+boolean Break_Lights(){ //Remember to add BreakOn parameters for hazard lights and blinkers - Takes precedence over everything else
+  boolean BreakOn;
+  if (digitalRead(BRK_INPUT) == HIGH){
+    BreakOn = true;
+    digitalWrite(BRK_L_HIGH, HIGH);
+    digitalWrite(BRK_R_HIGH, HIGH);
+  }
+  else{
+    BreakOn = false;
+    digitalWrite(BRK_L_HIGH, LOW);
+    digitalWrite(BRK_R_HIGH, LOW);
+  }
 }
 
 int Set_Wiper_Position(int WiperPosition, boolean Direction){
@@ -154,7 +188,7 @@ boolean Hazard_Lights(boolean BlinkingOn){
 
 void loop(){
   CurrentTime = millis();
-  if ((CurrentTime - BlinkComparisonTime) < BlinkTimeInterval){
+  if ((CurrentTime - BlinkComparisonTime) > BlinkTimeInterval){
     BlinkOn = true;
     BlinkComparisonTime = CurrentTime;
   }
