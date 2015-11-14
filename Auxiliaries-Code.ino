@@ -16,7 +16,6 @@
 #define BRK_INPUT 13 //Break input
 //Driving lights are not defined for the testing purposes
 
-int ReadTimeInterval = 250;
 int BlinkTimeInterval = 500;
 boolean BlinkOn = false;
 boolean WiperDirection = false; //true is up, false is down
@@ -54,28 +53,15 @@ void setup(){
 
 void Break_Lights(boolean HazLightsOn, boolean LLightsOn, boolean RLightsOn){
   if (!HazLightsOn){
-    if (digitalRead(BRK_INPUT) == HIGH){
-      if (LLightsOn){
-        digitalWrite(BRK_R_HIGH, HIGH);  
-      }  
-      else if (RLightsOn){
-        digitalWrite(BRK_L_HIGH, HIGH);  
-      }
-      else{
-        digitalWrite(BRK_L_HIGH, HIGH); 
-        digitalWrite(BRK_R_HIGH, HIGH);   
-      }
+    if (LLightsOn){
+      digitalWrite(BRK_R_HIGH, (digitalRead(BRK_INPUT)));  
+    }  
+    else if (RLightsOn){
+      digitalWrite(BRK_L_HIGH, (digitalRead(BRK_INPUT)));  
     }
     else{
-      if (LLightsOn){
-        digitalWrite(BRK_R_HIGH, LOW);  
-      }
-      else if (RLightsOn){
-        digitalWrite(BRK_L_HIGH, LOW);  
-      }
-      else{
-        digitalWrite(BRK_L_HIGH, LOW); 
-      }
+      digitalWrite(BRK_L_HIGH, (digitalRead(BRK_INPUT))); 
+      digitalWrite(BRK_R_HIGH, (digitalRead(BRK_INPUT)));
     }
   }
 }
@@ -87,7 +73,7 @@ int Set_Wiper_Position(int WiperPosition, boolean Direction){
   else if (Direction){
     WiperPosition++;
   }
-  else if (!Direction){
+  else{
     WiperPosition--;  
   }
   analogWrite(WIPER_OUTPUT, WiperPosition);
@@ -120,12 +106,7 @@ boolean Wiper_Direction(int WiperPosition, boolean Direction){
 }
 
 void Horn(){
-  if (digitalRead(HORN_SWITCH) == HIGH){
-    digitalWrite(HORN, HIGH);
-  }
-  else{
-    digitalWrite(HORN, LOW);  
-  }
+  digitalWrite(HORN, (digitalRead(HORN_SWITCH)));
 }
 
 boolean Left_Turn_Light(boolean BlinkingOn){
@@ -227,8 +208,8 @@ void loop(){
   }
   Horn();
   HazLightsOn = Hazard_Lights(BlinkOn);
-  RBlinkersOn = Right_Turn_Light(BlinkOn);
   LBlinkersOn = Left_Turn_Light(BlinkOn);
+  RBlinkersOn = Right_Turn_Light(BlinkOn);
   Break_Lights(HazLightsOn, LBlinkersOn, RBlinkersOn);
   if (CurrentTime > (WiperTime + WiperIncrementTime)){
     WiperDirection = Wiper_Direction(WiperPosition, WiperDirection);
