@@ -17,6 +17,8 @@
 //Check the position of these inputs and outputs on the board
 */
 
+#include "aux_can_handler.h"
+
 #define HORN 0 //Horn
 #define BLINK_L 1 //Left front lights
 #define BLINK_R 2 //Right front lights
@@ -44,6 +46,10 @@ long BlinkComparisonTime = 0;
 long WiperTime = 0;
 
 void setup(){
+
+  //start CAN bus
+  aux_can_init();
+  
   //pinMode(DRIVING_LIGHTS, OUTPUT); not defined in testing purposes
   pinMode(HORN, OUTPUT);
   pinMode(BLINK_L, OUTPUT);
@@ -188,6 +194,11 @@ boolean Hazard_Lights(boolean BlinkingOn){
 }
 
 void loop(){
+  if(digitalRead(8)) //or whatever pin is connected to CAN_INT
+  {
+    aux_read_can_bus();
+  }
+  
   CurrentTime = millis();
   if ((CurrentTime - BlinkComparisonTime) > BlinkTimeInterval){
     BlinkOn = true;
