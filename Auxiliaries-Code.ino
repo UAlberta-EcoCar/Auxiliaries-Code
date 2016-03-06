@@ -1,22 +1,3 @@
-/*
-#define DRIVING_LIGHTS A5 //Driving lights
-#define HORN A4 //Horn
-#define BLINK_L A3 //Left front lights
-#define BLINK_R A2 //Right front lights
-#define WIPER_SWITCH A1 //Wiper switch
-#define HAZ_SWITCH A0 //Hazard lights switch
-#define HORN_SWITCH 9 //Horn switch
-#define L_SWITCH 8 //Left turn switch
-#define R_SWITCH 7 //Right turn switch
-#define R_LED 6 //Right dashboard blinker
-#define L_LED 5 //Left dashboard blinker
-#define BRK_L_HIGH 4 //Left back lights
-#define WIPER_OUTPUT 3 //Wipers output (servo motor)
-#define BRK_R_HIGH 2 //Right back lights
-//#define BRK_INPUT SOMETHING //Break input
-//Check the position of these inputs and outputs on the board
-*/
-
 #include "aux_can_handler.h"
 
 #define HORN 0 //Horn

@@ -6,20 +6,26 @@
 #include <can_message_def.h>
 #include <arduino.h>
 
-//SIGNAL
-can_msg::MsgEncode aux_signal_msg( can_msg::BOOL, can_msg::AUX, can_msg::SIGNAL, can_msg::IMPORTANT, 3 );
 
-//HORN_WIPERS
-can_msg::MsgEncode aux_horn_wipers_msg( can_msg::BOOL, can_msg::AUX, can_msg::HORN_WIPERS, can_msg::IMPORTANT, 2 );
+//LCD Horn
+can_msg::MsgEncode lcd_horn_msg( can_msg::BOOL, can_msg::AUX, can_msg::HORN, can_msg::IMPORTANT, 1);
 
-//BREAK
+//LCD WIpers
+can_msg::MsgEncode lcd_wipers_msg( can_msg::BOOL, can_msg::AUX, can_msg::WIPERS, can_msg::IMPORTANT, 1);
+
+//LCD Signals
+can_msg::MsgEncode lcd_signals_msg( can_msg::BOOL, can_msg::AUX, can_msg::SIGNAL, can_msg::IMPORTANT, 3);
+
+//LCD Headlight
+can_msg::MsgEncode lcd_headlights_msg( can_msg::BOOL, can_msg::AUX, can_msg::HEADLIGHTS, can_msg::IMPORTANT, 1);
+
+//BRAKES
 can_msg::MsgEncode brake_msg( can_msg::UINT8, can_msg::MOTOR, can_msg::BRAKE, can_msg::CRITICAL, 1 );
-
 
 uint8_t aux_can_init(void)
 {
     //initialize CAN bus with filtering for aux and motor messages
-    while(can_init(DEVICE_MASK|MESSAGE_MASK,aux_signal_msg.id(),aux_horn_wipers_msg.id(),DEVICE_MASK|MESSAGE_MASK,brake_msg.id(),0,0,0));
+    while(can_init(DEVICE_MASK|MESSAGE_MASK,lcd_horn_msg.id(),lcd_wipers_msg.id(),DEVICE_MASK|MESSAGE_MASK,lcd_signals_msg.id(),lcd_headlights_msg.id(),0,0));
     return (0);
 }
 
@@ -30,12 +36,13 @@ uint8_t aux_input_state;
 #define HAZARDS_BIT 3
 #define HORN_BIT 4
 #define WIPERS_BIT 5
+#define HEADLIGHTS_BIT 6
 
 void aux_read_can_bus(void)
 {
     CanMessage message;
     message = can_get_message();
-    if ((message.id & (DEVICE_MASK|MESSAGE_MASK)) == (aux_signal_msg.id() & (DEVICE_MASK|MESSAGE_MASK)))
+    if ((message.id & (DEVICE_MASK|MESSAGE_MASK)) == (lcd_signals_msg.id() & (DEVICE_MASK|MESSAGE_MASK)))
     {
             if(message.data[0] & (1 << can_msg::LEFT_SIGNAL))
             {
@@ -62,9 +69,9 @@ void aux_read_can_bus(void)
                 aux_input_state &= ~(1 << HAZARDS_BIT);
             }
     }
-    else if ((message.id & (DEVICE_MASK|MESSAGE_MASK)) == (aux_horn_wipers_msg.id() & (DEVICE_MASK|MESSAGE_MASK)))
+    else if ((message.id & (DEVICE_MASK|MESSAGE_MASK)) == (lcd_horn_msg.id() & (DEVICE_MASK|MESSAGE_MASK)))
     {
-            if(message.data[0] & (1 << can_msg::HORN))
+            if(message.data[0] & (1 << 0))
             {
                 aux_input_state |= (1 << HORN_BIT);
             }
@@ -72,7 +79,10 @@ void aux_read_can_bus(void)
             {
                 aux_input_state &= ~(1 << HORN_BIT);
             }
-            if(message.data[0] & (1 << can_msg::WIPER))
+    }
+    else if ((message.id & (DEVICE_MASK|MESSAGE_MASK)) == (lcd_wipers_msg.id() & (DEVICE_MASK|MESSAGE_MASK)))
+    {
+            if(message.data[0] & (1 << 0))
             {
                 aux_input_state |= (1 << WIPERS_BIT);
             }
@@ -81,6 +91,17 @@ void aux_read_can_bus(void)
                 aux_input_state &= ~(1 << WIPERS_BIT);
             }
     }
+    else if ((message.id & (DEVICE_MASK|MESSAGE_MASK)) == (lcd_headlights_msg.id() & (DEVICE_MASK|MESSAGE_MASK)))
+    {
+            if(message.data[0] & (1 << 0))
+            {
+                aux_input_state |= (1 << HEADLIGHTS_BIT);
+            }
+            else
+            {
+                aux_input_state &= ~(1 << HEADLIGHTS_BIT);
+            }
+    }    
     else if ((message.id & (DEVICE_MASK|MESSAGE_MASK)) == (brake_msg.id() & (DEVICE_MASK|MESSAGE_MASK)))
     {
             if(message.data[0])
@@ -138,3 +159,4 @@ uint8_t check_wipers(void)
     }
     return(0);
 }
+
