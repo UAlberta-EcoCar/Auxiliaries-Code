@@ -113,6 +113,17 @@ void aux_read_can_bus(void)
                 aux_input_state &= ~(1 << BRAKE_BIT);
             }
     }
+    else if ((message.id & (DEVICE_MASK|MESSAGE_MASK)) == (lcd_headlights_msg.id() & (DEVICE_MASK|MESSAGE_MASK)))
+    {
+            if(message.data[0])
+            {
+                aux_input_state |= (1 << HEADLIGHTS_BIT);
+            }
+            else
+            {
+                aux_input_state &= ~(1 << HEADLIGHTS_BIT);
+            }
+    }
 }
 
 uint8_t check_brake(void)
@@ -160,3 +171,11 @@ uint8_t check_wipers(void)
     return(0);
 }
 
+uint8_t check_hazards(void)
+{
+  if(aux_input_state & ( 1 << WIPERS_BIT))
+  {
+    return(1);
+  }
+  return(0);
+}
