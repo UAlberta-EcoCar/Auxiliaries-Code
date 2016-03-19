@@ -12,6 +12,6 @@ uint8_t check_left_signal(void);
 uint8_t check_right_signal(void);
 uint8_t check_horn(void);
 uint8_t check_wipers(void);
+uint8_t check_hazards(void);
 
 #endif
-
