@@ -35,7 +35,7 @@ uint8_t aux_can_init(void)
 #define HORN_BIT 4
 #define WIPERS_BIT 5
 #define HEADLIGHTS_BIT 6
-uint8_t aux_input_state;
+uint8_t aux_input_state = (1 << HEADLIGHTS_BIT)|(1<<HAZARDS_BIT);
 
 
 void aux_read_can_bus(void)
@@ -188,3 +188,4 @@ uint8_t check_headlights(void)
   }
   return(0);
 }
+

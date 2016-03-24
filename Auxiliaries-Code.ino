@@ -1,219 +1,149 @@
 #include "aux_can_handler.h"
-
-#define HORN 0 //Horn
-#define BLINK_L 1 //Left front lights
-#define BLINK_R 2 //Right front lights
-#define WIPER_SWITCH 3 //Wiper switch
-#define HAZ_SWITCH 4 //Hazard lights switch
-#define HORN_SWITCH 5 //Horn switch
-#define L_SWITCH 6 //Left turn switch
-#define R_SWITCH 7 //Right turn switch
-#define R_LED 8 //Right dashboard blinker
-#define L_LED 9 //Left dashboard blinker
-#define BRK_L_HIGH 10 //Left back lights
-#define WIPER_OUTPUT 11 //Wipers output (servo motor)
-#define BRK_R_HIGH 12 //Right back lights
-#define BRK_INPUT 13 //Break input
-//Driving lights are not defined for the testing purposes
+#include "Aux_defs.h"
 
 int BlinkTimeInterval = 500;
-boolean BlinkOn = false;
-boolean WiperDirection = false; //true is up, false is down
-boolean HazLightsOn = false;
-boolean RBlinkersOn = false;
-boolean LBlinkersOn = false;
-int WiperPosition = 0;
-long CurrentTime = 0;
+boolean Blink;
 long BlinkComparisonTime = 0;
-long WiperTime = 0;
-int WiperIncrementTime = 2;
 
+bool brake_state;
+bool hazard_state;
+bool left_signal_state;
+bool right_signal_state;
+  
 void setup(){
+  Serial.begin(115200);
 
   //start CAN bus
   aux_can_init();
+  digitalWrite(LED_1,HIGH);
   
   //pinMode(DRIVING_LIGHTS, OUTPUT); not defined in testing purposes
   pinMode(HORN, OUTPUT);
   pinMode(BLINK_L, OUTPUT);
   pinMode(BLINK_R, OUTPUT);
-  pinMode(WIPER_SWITCH, INPUT);
-  pinMode(HAZ_SWITCH, INPUT);
-  pinMode(HORN_SWITCH, INPUT);
-  pinMode(L_SWITCH, INPUT);
-  pinMode(R_SWITCH, INPUT);
-  pinMode(R_LED, OUTPUT);
-  pinMode(L_LED, OUTPUT);
+  pinMode(LED_0, OUTPUT);
+  pinMode(LED_1, OUTPUT);
   pinMode(BRK_L_HIGH, OUTPUT);
   pinMode(WIPER_OUTPUT, OUTPUT);
   pinMode(BRK_R_HIGH, OUTPUT);
-  pinMode(BRK_INPUT, INPUT);
-  //digitalWrite(DRIVING_LIGHTS, HIGH); Taken out for testing purposes
+  pinMode(R_DRIVING_LIGHTS,OUTPUT);
+  pinMode(F_DRIVING_LIGHTS,OUTPUT);
+
 }
 
-void Break_Lights(boolean HazLightsOn, boolean LLightsOn, boolean RLightsOn){
-  if (!HazLightsOn){
-    if (LLightsOn){
-      digitalWrite(BRK_R_HIGH, (digitalRead(BRK_INPUT)));  
-    }  
-    else if (RLightsOn){
-      digitalWrite(BRK_L_HIGH, (digitalRead(BRK_INPUT)));  
-    }
-    else{
-      digitalWrite(BRK_L_HIGH, (digitalRead(BRK_INPUT))); 
-      digitalWrite(BRK_R_HIGH, (digitalRead(BRK_INPUT)));
-    }
-  }
-}
 
-int Set_Wiper_Position(int WiperPosition, boolean Direction){
-  if ((WiperPosition == 0) && (digitalRead(WIPER_SWITCH) == LOW)){
-    WiperPosition = 0;
-  }
-  else if (Direction){
-    WiperPosition++;
-  }
-  else{
-    WiperPosition--;  
-  }
-  analogWrite(WIPER_OUTPUT, WiperPosition);
-  return WiperPosition;
-}
-
-boolean Wiper_Direction(int WiperPosition, boolean Direction){
-  if (digitalRead(WIPER_SWITCH) == HIGH){
-    if (Direction){
-      if (WiperPosition < 255){
-        Direction = true;  
-      }
-      else{
-        Direction = false;  
-      }
-    }
-    else{
-      if (WiperPosition > 0){
-        Direction = false;  
-      }
-      else{
-        Direction = true;  
-      }
-    }
-  }
-  else{
-    Direction = false;
-  }
-  return Direction;
-}
-
-void Horn(){
-  digitalWrite(HORN, (digitalRead(HORN_SWITCH)));
-}
-
-boolean Left_Turn_Light(boolean BlinkingOn){
-  boolean LightsOn;
-  if (digitalRead(L_SWITCH) == HIGH){
-    LightsOn = true;
-    if (BlinkingOn){
-      digitalWrite(L_LED, HIGH);
-      digitalWrite(BLINK_L, HIGH);
-      digitalWrite(BRK_L_HIGH, HIGH);  
-    }
-    else{
-      digitalWrite(L_LED, LOW);
-      digitalWrite(BLINK_L, LOW);
-      digitalWrite(BRK_L_HIGH, LOW);  
-    }
-  }
-  else{
-    LightsOn = false;
-    digitalWrite(L_LED, LOW);
-    digitalWrite(BLINK_L, LOW);
-    digitalWrite(BRK_L_HIGH, LOW);  
-  }
-  return LightsOn;
-}
-
-boolean Right_Turn_Light(boolean BlinkingOn){
-  boolean LightsOn;
-  if (digitalRead(R_SWITCH) == HIGH){
-    LightsOn = true;
-    if (BlinkingOn){
-      digitalWrite(R_LED, HIGH);
-      digitalWrite(BLINK_R, HIGH);
-      digitalWrite(BRK_R_HIGH, HIGH);  
-    }
-    else{
-      digitalWrite(R_LED, LOW);
-      digitalWrite(BLINK_R, LOW);
-      digitalWrite(BRK_R_HIGH, LOW);  
-    }
-  }
-  else{
-    LightsOn = false;
-    digitalWrite(R_LED, LOW);
-    digitalWrite(BLINK_R, LOW);
-    digitalWrite(BRK_R_HIGH, LOW);  
-  }
-  return LightsOn;
-}
-
-boolean Hazard_Lights(boolean BlinkingOn){
-  boolean HazLightsOn;
-  if (digitalRead(HAZ_SWITCH) == HIGH){
-    HazLightsOn = true;
-    if (BlinkingOn){
-      digitalWrite(R_LED, HIGH);
-      digitalWrite(BLINK_R, HIGH);
-      digitalWrite(BRK_R_HIGH, HIGH);
-      digitalWrite(L_LED, HIGH);
-      digitalWrite(BLINK_L, HIGH);
-      digitalWrite(BRK_L_HIGH, HIGH);
-    }
-    else{
-      digitalWrite(R_LED, LOW);
-      digitalWrite(BLINK_R, LOW);
-      digitalWrite(BRK_R_HIGH, LOW);
-      digitalWrite(L_LED, LOW);
-      digitalWrite(BLINK_L, LOW);
-      digitalWrite(BRK_L_HIGH, LOW);
-    }
-  }
-  else{
-    HazLightsOn = false;  
-    digitalWrite(R_LED, LOW);
-    digitalWrite(BLINK_R, LOW);
-    digitalWrite(BRK_R_HIGH, LOW);
-    digitalWrite(L_LED, LOW);
-    digitalWrite(BLINK_L, LOW);
-    digitalWrite(BRK_L_HIGH, LOW);
-  }
-  return HazLightsOn;
-}
-
-void loop(){
-  if(digitalRead(8)) //or whatever pin is connected to CAN_INT
+void loop()
+{
+  if(digitalRead(9) == 0)
   {
+    digitalWrite(LED_1,LOW);
     aux_read_can_bus();
+    digitalWrite(LED_1,HIGH);
+  }
+
+  if(millis() - BlinkComparisonTime > BlinkTimeInterval )
+  {
+    Blink ^= 1;
+    digitalWrite(LED_0,Blink);
+    BlinkComparisonTime = millis();
+  }
+
+  if(check_headlights())
+  {
+    digitalWrite(F_DRIVING_LIGHTS,HIGH);
+    digitalWrite(R_DRIVING_LIGHTS,HIGH);
+  }
+  else
+  {
+    digitalWrite(F_DRIVING_LIGHTS,LOW);
+    digitalWrite(R_DRIVING_LIGHTS,LOW);
   }
   
-  CurrentTime = millis();
-  if ((CurrentTime - BlinkComparisonTime) > BlinkTimeInterval){
-    BlinkOn = true;
-    if ((CurrentTime - BlinkComparisonTime) > 2*(BlinkTimeInterval)){
-      BlinkComparisonTime = CurrentTime;
+  if(check_horn())
+  {
+    digitalWrite(HORN,HIGH);
+  }
+  else
+  {
+    digitalWrite(HORN,LOW);
+  }
+
+
+  if(check_hazards())
+  {
+    digitalWrite(BRK_R_HIGH,Blink);
+    digitalWrite(BRK_L_HIGH,Blink);
+    digitalWrite(BLINK_R,Blink);
+    digitalWrite(BLINK_L,Blink);
+    hazard_state = 1;
+  }
+  else
+  {
+    if(hazard_state)
+    {
+      digitalWrite(BRK_R_HIGH,LOW);
+      digitalWrite(BRK_L_HIGH,LOW);
+      digitalWrite(BLINK_R,LOW);
+      digitalWrite(BLINK_L,LOW);
+      hazard_state = 0;
     }
   }
-  else{
-    BlinkOn = false;
+
+  //left signal
+  if(check_left_signal())
+  {
+    digitalWrite(BRK_L_HIGH,Blink);
+    digitalWrite(BLINK_L,Blink);
+    left_signal_state = 1;
+
+    if(Blink)
+    {
+      Serial.println("RIGHT");
+    }
   }
-  Horn();
-  HazLightsOn = Hazard_Lights(BlinkOn);
-  LBlinkersOn = Left_Turn_Light(BlinkOn);
-  RBlinkersOn = Right_Turn_Light(BlinkOn);
-  Break_Lights(HazLightsOn, LBlinkersOn, RBlinkersOn);
-  if (CurrentTime > (WiperTime + WiperIncrementTime)){
-    WiperDirection = Wiper_Direction(WiperPosition, WiperDirection);
-    WiperPosition = Set_Wiper_Position(WiperPosition, WiperDirection);
-    WiperTime = CurrentTime;
+  else
+  {
+   if(left_signal_state)
+   {
+    digitalWrite(BRK_L_HIGH,brake_state);
+    digitalWrite(BLINK_L,LOW);
+    left_signal_state = 0; 
+   }
+  }
+
+  //right signal
+  if(check_right_signal())
+  {
+    digitalWrite(BRK_R_HIGH,Blink);
+    digitalWrite(BLINK_R,Blink);
+    right_signal_state = 1;  }
+  else
+  {
+    if(right_signal_state)
+    {
+      digitalWrite(BRK_R_HIGH,brake_state);
+      digitalWrite(BLINK_R,LOW);
+      right_signal_state = 0;
+    }
+  }
+
+  //brake
+  if(check_brake())
+  {
+    if(brake_state == 0)
+    {
+      digitalWrite(BRK_R_HIGH,HIGH);
+      digitalWrite(BRK_L_HIGH,HIGH);
+      brake_state = 1;
+    }
+  }
+  else
+  {
+    if(brake_state)
+    {
+      digitalWrite(BRK_R_HIGH,LOW);
+      digitalWrite(BRK_L_HIGH,LOW);
+      brake_state = 0;
+    }
   }
 }

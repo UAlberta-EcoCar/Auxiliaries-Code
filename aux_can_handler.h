@@ -17,3 +17,4 @@ uint8_t check_hazards(void);
 uint8_t check_headlights(void);
 
 #endif
+
