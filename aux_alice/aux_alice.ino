@@ -1,6 +1,8 @@
+#include <Timer.h>
 #include "aux_can.h"
 
 Can myCan;
+Timer indicatorTimer;
 
 void setup() {
   Serial.begin(9600);
@@ -17,9 +19,14 @@ void setup() {
   pinMode(BRK_R_PIN, OUTPUT);
 
   myCan.begin();
+  indicatorTimer.reset();
 }
 
 bool blinker = false;
+bool indicator_left_flag = false;
+bool indicator_right_flag = false;
+bool hazards_flag = false;
+bool brake_flag = false;
 
 void loop() {
   myCan.read();
@@ -49,6 +56,7 @@ void loop() {
   if(myCan.brake_available()) {
     Serial.print("Brake ");
     Serial.println(myCan.brake() ? "On" : "Off");
+    brake_flag = myCan.brake();
     digitalWrite(BRK_L_PIN, myCan.brake() ? HIGH : LOW);
     digitalWrite(BRK_R_PIN, myCan.brake() ? HIGH : LOW);
   }
@@ -57,11 +65,50 @@ void loop() {
   if(myCan.signal_available()) {
     Serial.print("Signal ");
     switch(myCan.signal()){
-      case LEFT_SIG: Serial.println("Left"); break;
-      case RIGHT_SIG: Serial.println("Right"); break;
-      case HARZARDS_SIG: Serial.println("Hazards"); break;
+      case LEFT_SIG: Serial.println("Left");
+      indicator_left_flag = true; indicator_right_flag = false; blinker = true;
+      break;
+      case RIGHT_SIG: Serial.println("Right");
+      indicator_right_flag = true; indicator_left_flag = false; blinker = true;
+      break;
+      case HARZARDS_SIG: Serial.println("Hazards");
+      hazards_flag = true; indicator_left_flag = false; indicator_right_flag = false;
+      blinker = true;
+      break;
       default: Serial.println("Off");
+      signal(false, false);
+      indicator_left_flag = false;
+      indicator_right_flag = false;
+      hazards_flag = false;
+      blinker = false;
     }
   }
 
+  // Signal blinking
+  if(indicatorTimer.elapsed(500)) {
+    if(indicator_left_flag) {
+      signal(blinker, false);
+      blinker = !blinker;
+    }
+    if(indicator_right_flag) {
+      signal(false, blinker);
+      blinker = !blinker;
+    }
+    if(hazards_flag) {
+      signal(blinker, blinker);
+      blinker = !blinker;
+    }
+  }
+
+}
+
+// function to control blink lights
+void signal(bool left, bool right) {
+  digitalWrite(BLINK_L_PIN, left);
+  digitalWrite(BLINK_R_PIN, right);
+  // TODO: Handle brake with indicator
+  digitalWrite(BRK_L_PIN, left);
+  digitalWrite(BRK_R_PIN, right);
+  digitalWrite(LED_0, left);
+  digitalWrite(LED_1, right);
 }
