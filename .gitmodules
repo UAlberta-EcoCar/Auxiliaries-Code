@@ -1,0 +1,6 @@
+[submodule "libraries/CAN-BUS-MESSAGES"]
+	path = libraries/CAN-BUS-MESSAGES
+	url = https://github.com/UAlberta-EcoCar/CAN-BUS-MESSAGES.git
+[submodule "libraries/mcp2515_lib"]
+	path = libraries/mcp2515_lib
+	url = https://github.com/UAlberta-EcoCar/mcp2515_lib.git
