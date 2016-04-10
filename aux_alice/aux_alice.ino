@@ -1,24 +1,12 @@
 #include <Timer.h>
 #include "aux_can.h"
-#include <Servo.h>
-Servo servo;
-
-int initAngle = 10; 
-int maxAngle = 140;
-int angle;
-int wiperDirection; // +1: Forward    -1: Reverse
-int increment = 1;
-
-int pauseInterval = 5; 
-unsigned long previousTime = 0;
-unsigned long currentTime;
 
 Can myCan;
 Timer indicatorTimer;
 
 void setup() {
   Serial.begin(9600);
-  
+
   pinMode(LED_0, OUTPUT);
   pinMode(LED_1, OUTPUT);
   pinMode(HORN_PIN, OUTPUT);
@@ -32,9 +20,6 @@ void setup() {
 
   myCan.begin();
   indicatorTimer.reset();
-
-  servo.attach(WIPER_PIN);
-  angle = initAngle;
 }
 
 bool blinker = false;
@@ -45,7 +30,6 @@ bool brake_flag = false;
 
 void loop() {
   myCan.read();
-  currentTime = millis();
 
   // HORN
   if(myCan.horn_available()) {
@@ -67,41 +51,6 @@ void loop() {
     Serial.print("Wipers ");
     Serial.println(myCan.wipers() ? "On" : "Off");
   }
-
-  if (myCan.wipers_available()){
-    if ((currentTime - previousTime) == pauseInterval){
-      previousTime = currentTime;
-      if (angle == initAngle){
-        wiperDirection = 1; 
-        angle = angle + increment;
-      }
-      else if ((angle > initAngle) && (angle < maxAngle) && (wiperDirection == 1)){
-        angle = angle + increment;
-      }
-      else if (angle == maxAngle){
-        wiperDirection = -1;
-        angle = angle - increment;
-      }    
-      else {
-        angle = angle - increment; 
-      }
-      servo.write(angle);
-    }
-  }
-  else {
-    if ((currentTime - previousTime) == pauseInterval){
-      previousTime = currentTime;
-      if ((angle > initAngle) && (angle <= maxAngle)){
-        wiperDirection = -1;
-        angle = angle - increment;
-      }
-      else {
-        wiperDirection = 1;
-      }
-      servo.write(angle);
-    }
-  }
-
 
   // BRAKES
   if(myCan.brake_available()) {
