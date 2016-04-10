@@ -17,7 +17,7 @@ can_msg::MsgEncode brake_msg( can_msg::UINT8, can_msg::MOTOR, can_msg::BRAKE, ca
 void Can::begin() {
   // Initialize CAN
   Serial.println("Initializing CAN Controller");
-  if (can_init(0,0,0,0,0,0,0,0)){
+  if (can_init(DEVICE_MASK,horn_msg.id(),wipers_msg.id(),DEVICE_MASK,signals_msg.id(),headlights_msg.id(),brake_msg.id(),0)){
     Serial.println("Error: CAN initialization :(");
     while(1); // hang up program
   }

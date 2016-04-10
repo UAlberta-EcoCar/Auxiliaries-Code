@@ -1,8 +1,17 @@
-#include <Timer.h>
+#include "Timer.h"
 #include "aux_can.h"
+#include <Servo.h>
 
 Can myCan;
 Timer indicatorTimer;
+
+Servo myServo;
+#define restPosition 4
+#define farPosition 160
+int16_t servoPosition = restPosition;
+int8_t servoDirection = 1;
+#define servoSweep_speed 15
+unsigned long servoSweep_timer;
 
 void setup() {
   Serial.begin(9600);
@@ -20,6 +29,9 @@ void setup() {
 
   myCan.begin();
   indicatorTimer.reset();
+
+  myServo.attach(5);
+  myServo.write(servoPosition);
 }
 
 bool blinker = false;
@@ -47,9 +59,48 @@ void loop() {
   }
 
   // WIPERS
+  myServo.write(servoPosition);
   if(myCan.wipers_available()) {
     Serial.print("Wipers ");
     Serial.println(myCan.wipers() ? "On" : "Off");
+  }
+  if(myCan.wipers())
+  {
+    if(millis() - servoSweep_timer > servoSweep_speed)
+    {
+      servoSweep_timer = millis();
+      servoPosition = servoPosition + servoDirection;
+      Serial.println(servoPosition);
+    }
+    if(servoPosition == farPosition)
+    {
+      servoDirection = -1;
+    }
+    if(servoPosition == restPosition)
+    {
+      servoDirection = 1;
+    }
+  }
+  else
+  {    
+    if(millis() - servoSweep_timer > servoSweep_speed)
+    {
+      servoSweep_timer = millis();
+      servoPosition = servoPosition + servoDirection;
+      Serial.println(servoPosition);
+    }
+    if(servoPosition == farPosition)
+    {
+      servoDirection = -1;
+    }
+    if(servoPosition == restPosition)
+    {
+      servoDirection = 0;
+    }
+    else
+    {
+      servoDirection = -1;
+    }
   }
 
   // BRAKES
