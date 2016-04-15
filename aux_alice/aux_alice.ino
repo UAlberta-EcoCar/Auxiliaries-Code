@@ -70,7 +70,7 @@ void loop() {
     {
       servoSweep_timer = millis();
       servoPosition = servoPosition + servoDirection;
-      Serial.println(servoPosition);
+//      Serial.println(servoPosition);
     }
     if(servoPosition == farPosition)
     {
@@ -87,7 +87,7 @@ void loop() {
     {
       servoSweep_timer = millis();
       servoPosition = servoPosition + servoDirection;
-      Serial.println(servoPosition);
+//      Serial.println(servoPosition);
     }
     if(servoPosition == farPosition)
     {

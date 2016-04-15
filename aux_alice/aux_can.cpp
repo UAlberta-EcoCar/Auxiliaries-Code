@@ -17,7 +17,7 @@ can_msg::MsgEncode brake_msg( can_msg::UINT8, can_msg::MOTOR, can_msg::BRAKE, ca
 void Can::begin() {
   // Initialize CAN
   Serial.println("Initializing CAN Controller");
-  if (can_init(DEVICE_MASK,horn_msg.id(),wipers_msg.id(),DEVICE_MASK,signals_msg.id(),headlights_msg.id(),brake_msg.id(),0)){
+  if (can_init(0,0,0,0,0,0,0,0)){
     Serial.println("Error: CAN initialization :(");
     while(1); // hang up program
   }
@@ -28,8 +28,12 @@ void Can::begin() {
  * Read CAN Bus
  */
  void Can::read() {
-   if(!digitalRead(CAN_INT)) {
+   if(digitalRead(CAN_INT) == 0) {
      CanMessage message = can_get_message();
+     if(message.id != 0)
+     {
+     Serial.println("MESSAGE RECIEVED");
+     Serial.println(message.id);
      // read headlights
      if( message.id == headlights_msg.id()) {
        _headlights = message.data[0];
@@ -57,6 +61,7 @@ void Can::begin() {
        else if (message.data[0] & 1 << can_msg::HAZARD_LIGHTS) _signal = HARZARDS_SIG;
        else _signal = 0;
        _signal_flag = true;
+     }
      }
    }
  }
