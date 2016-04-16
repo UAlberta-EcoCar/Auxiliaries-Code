@@ -10,6 +10,8 @@ can_msg::MsgEncode signals_msg( can_msg::BOOL, can_msg::AUX, can_msg::SIGNAL, ca
 can_msg::MsgEncode headlights_msg( can_msg::BOOL, can_msg::AUX, can_msg::HEADLIGHTS, can_msg::IMPORTANT, 1);
 // Brakes
 can_msg::MsgEncode brake_msg( can_msg::UINT8, can_msg::MOTOR, can_msg::BRAKE, can_msg::CRITICAL, 1 );
+//Aux status
+can_msg::MsgEncode aux_status_msg( can_msg::UINT8, can_msg::AUX, can_msg::AUX_STATUS, can_msg::IMPORTANT,1);
 
 /*
  * Initializes CAN bus
