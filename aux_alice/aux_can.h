@@ -18,6 +18,8 @@ public:
   void begin();
 
   void read();
+  void send_status();
+  
   bool horn_available() { return _horn_flag; }
   bool horn() { _horn_flag = false; return _horn; }
   bool headlights_available() { return _headlights_flag; }

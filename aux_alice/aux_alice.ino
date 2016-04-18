@@ -5,6 +5,8 @@
 Can myCan;
 Timer indicatorTimer;
 
+Timer status_send_timer;
+
 Servo myServo;
 #define restPosition 4
 #define farPosition 160
@@ -28,8 +30,10 @@ void setup() {
   pinMode(BRK_R_PIN, OUTPUT);
 
   myCan.begin();
+  
   indicatorTimer.reset();
-
+  status_send_timer.reset();
+  
   myServo.attach(5);
   myServo.write(servoPosition);
 }
@@ -149,6 +153,12 @@ void loop() {
       signal(blinker, blinker);
       blinker = !blinker;
     }
+  }
+
+  if(status_send_timer.elapsed(500))
+  {
+    myCan.send_status();
+    status_send_timer.reset();
   }
 
 }

@@ -11,7 +11,7 @@ can_msg::MsgEncode headlights_msg( can_msg::BOOL, can_msg::AUX, can_msg::HEADLIG
 // Brakes
 can_msg::MsgEncode brake_msg( can_msg::UINT8, can_msg::MOTOR, can_msg::BRAKE, can_msg::CRITICAL, 1 );
 //Aux status
-can_msg::MsgEncode aux_status_msg( can_msg::UINT8, can_msg::AUX, can_msg::AUX_STATUS, can_msg::IMPORTANT,1);
+can_msg::MsgEncode aux_status_msg( can_msg::BOOL, can_msg::AUX, can_msg::AUX_STATUS, can_msg::IMPORTANT,1);
 
 /*
  * Initializes CAN bus
@@ -24,6 +24,14 @@ void Can::begin() {
     while(1); // hang up program
   }
   Serial.println("CAN Controller Initialized :)");
+}
+
+//send status message
+void Can::send_status(){
+  CanMessage message;
+  message.id = aux_status_msg.id();
+  message.length = aux_status_msg.len();
+  can_send_message(&message);
 }
 
 /*
