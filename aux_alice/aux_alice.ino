@@ -3,9 +3,10 @@
 #include <Servo.h>
 
 Can myCan;
-Timer indicatorTimer;
 
+Timer indicatorTimer;
 Timer status_send_timer;
+Timer horn_timer;
 
 Servo myServo;
 #define restPosition 4
@@ -49,9 +50,14 @@ void loop() {
 
   // HORN
   if(myCan.horn_available()) {
+    horn_timer.reset();
     Serial.print("Horn ");
     Serial.println(myCan.horn() ? "On" : "Off");
     digitalWrite(HORN_PIN, myCan.horn() ? HIGH : LOW);
+  }
+  if(horn_timer.elapsed(2000))
+  {
+    digitalWrite(HORN_PIN,LOW);
   }
 
   // HEADLIGHTS
