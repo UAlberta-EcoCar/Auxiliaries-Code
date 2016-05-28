@@ -1,6 +1,3 @@
-[submodule "libraries/mcp2515_lib"]
-	path = libraries/mcp2515_lib
-	url = https://github.com/UAlberta-EcoCar/mcp2515_lib.git
 [submodule "libraries/Can_messages"]
 	path = libraries/Can_messages
 	url = https://github.com/UAlberta-EcoCar/Can_messages.git
