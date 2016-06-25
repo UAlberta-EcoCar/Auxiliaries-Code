@@ -55,7 +55,7 @@ void loop() {
     Serial.println(myCan.horn() ? "On" : "Off");
     digitalWrite(HORN_PIN, myCan.horn() ? HIGH : LOW);
   }
-  if(horn_timer.elapsed(2000))
+  if(horn_timer.elapsed(750))
   {
     digitalWrite(HORN_PIN,LOW);
   }
