@@ -10,7 +10,7 @@
 
 #define LEFT_SIG 1
 #define RIGHT_SIG 2
-#define HARZARDS_SIG 3
+#define HAZARDS_SIG 3
 
 class Can {
 public:

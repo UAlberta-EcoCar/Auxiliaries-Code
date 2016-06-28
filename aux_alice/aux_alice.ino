@@ -9,12 +9,14 @@ Timer status_send_timer;
 Timer horn_timer;
 
 Servo myServo;
-#define restPosition 4
+#define restPosition 60
 #define farPosition 160
 int16_t servoPosition = restPosition;
 int8_t servoDirection = 1;
-#define servoSweep_speed 15
+#define servoSweep_speed 5
 unsigned long servoSweep_timer;
+
+uint32_t flash_timer;
 
 void setup() {
   Serial.begin(9600);
@@ -30,10 +32,11 @@ void setup() {
   pinMode(BRK_L_PIN, OUTPUT);
   pinMode(BRK_R_PIN, OUTPUT);
 
+  pinMode(A0,INPUT);
+
   myCan.begin();
   
   indicatorTimer.reset();
-  status_send_timer.reset();
   
   myServo.attach(5);
   myServo.write(servoPosition);
@@ -45,8 +48,19 @@ bool indicator_right_flag = false;
 bool hazards_flag = false;
 bool brake_flag = false;
 
+bool reegan_brake_flag = false;
+bool reegan_brake = false;
+
+bool flash;
+
 void loop() {
   myCan.read();
+
+  if(millis() - flash_timer > 500)
+  {
+    flash ^= 1;
+    flash_timer=millis();
+  }
 
   // HORN
   if(myCan.horn_available()) {
@@ -60,13 +74,6 @@ void loop() {
     digitalWrite(HORN_PIN,LOW);
   }
 
-  // HEADLIGHTS
-  if(myCan.headlights_available()) {
-    Serial.print("Headlights ");
-    Serial.println(myCan.headlights() ? "On" : "Off");
-    digitalWrite(F_DRIVING_LIGHTS_PIN, myCan.headlights() ? HIGH : LOW);
-    digitalWrite(R_DRIVING_LIGHTS_PIN, myCan.headlights() ? HIGH : LOW);
-  }
 
   // WIPERS
   myServo.write(servoPosition);
@@ -113,69 +120,47 @@ void loop() {
     }
   }
 
-  // BRAKES
-  if(myCan.brake_available()) {
-    Serial.print("Brake ");
-    Serial.println(myCan.brake() ? "On" : "Off");
-    brake_flag = myCan.brake();
-    digitalWrite(BRK_L_PIN, myCan.brake() ? HIGH : LOW);
-    digitalWrite(BRK_R_PIN, myCan.brake() ? HIGH : LOW);
-  }
+  digitalWrite(F_DRIVING_LIGHTS_PIN,myCan.headlights());
+  digitalWrite(R_DRIVING_LIGHTS_PIN,myCan.headlights());
 
-  // SIGNALS
-  if(myCan.signal_available()) {
-    Serial.print("Signal ");
-    switch(myCan.signal()){
-      case LEFT_SIG: Serial.println("Left");
-      indicator_left_flag = true; indicator_right_flag = false; blinker = true;
-      break;
-      case RIGHT_SIG: Serial.println("Right");
-      indicator_right_flag = true; indicator_left_flag = false; blinker = true;
-      break;
-      case HARZARDS_SIG: Serial.println("Hazards");
-      hazards_flag = true; indicator_left_flag = false; indicator_right_flag = false;
-      blinker = true;
-      break;
-      default: Serial.println("Off");
-      signal(false, false);
-      indicator_left_flag = false;
-      indicator_right_flag = false;
-      hazards_flag = false;
-      blinker = false;
-    }
-  }
-
-  // Signal blinking
-  if(indicatorTimer.elapsed(500)) {
-    if(indicator_left_flag) {
-      signal(blinker, false);
-      blinker = !blinker;
-    }
-    if(indicator_right_flag) {
-      signal(false, blinker);
-      blinker = !blinker;
-    }
-    if(hazards_flag) {
-      signal(blinker, blinker);
-      blinker = !blinker;
-    }
-  }
-
-  if(status_send_timer.elapsed(500))
+  if(analogRead(A0) < 700)
   {
-    myCan.send_status();
-    status_send_timer.reset();
+    digitalWrite(BRK_R_PIN,HIGH);
+    digitalWrite(BRK_L_PIN,HIGH);
+    Serial.println(analogRead(A0));
+    
+  }
+  else
+  {
+    digitalWrite(BRK_L_PIN,LOW);
+    digitalWrite(BRK_R_PIN,LOW);
+  }
+  
+  digitalWrite(BLINK_L_PIN,LOW);
+  digitalWrite(BLINK_R_PIN,LOW);
+  
+  if(myCan.signal() == LEFT_SIG)
+  {
+    digitalWrite(BRK_L_PIN,flash);
+    digitalWrite(BLINK_L_PIN,flash);
   }
 
+  if(myCan.signal() == RIGHT_SIG)
+  {
+    digitalWrite(BRK_R_PIN,flash);
+    digitalWrite(BLINK_R_PIN,flash);
+  }
+
+  if(myCan.signal() == HAZARDS_SIG)
+  {
+    digitalWrite(BRK_R_PIN,flash);
+    digitalWrite(BRK_L_PIN,flash);
+    digitalWrite(BLINK_L_PIN,flash);
+    digitalWrite(BLINK_R_PIN,flash);
+  }
+
+  digitalWrite(LED_0,digitalRead(BRK_R_PIN));
+  digitalWrite(LED_1,digitalRead(BRK_L_PIN));
 }
 
-// function to control blink lights
-void signal(bool left, bool right) {
-  digitalWrite(BLINK_L_PIN, left);
-  digitalWrite(BLINK_R_PIN, right);
-  // TODO: Handle brake with indicator
-  digitalWrite(BRK_L_PIN, left);
-  digitalWrite(BRK_R_PIN, right);
-  digitalWrite(LED_0, left);
-  digitalWrite(LED_1, right);
-}
+

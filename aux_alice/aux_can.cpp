@@ -60,15 +60,21 @@ void Can::send_status(){
        _horn_flag = true;
      }
      // read brake
-     if( message.id == brake_msg.id() ) {
-       _brake = message.data[0] > 0;
-       _horn_flag = true;
-     }
+//     if( message.id == brake_msg.id() ) {
+//       _brake = message.data[0] > 0;
+//       _horn_flag = true;
+//     }
+//       if(analogRead(A0) < 800)
+//       {
+//        _brake = message.data[0] > 0;
+//        _horn_flag = true;
+//       }
+
      // read signals
      if( message.id == signals_msg.id() ) {
        if(message.data[0] & 1 << can_msg::LEFT_SIGNAL) _signal = LEFT_SIG;
        else if (message.data[0] & 1 << can_msg::RIGHT_SIGNAL) _signal = RIGHT_SIG;
-       else if (message.data[0] & 1 << can_msg::HAZARD_LIGHTS) _signal = HARZARDS_SIG;
+       else if (message.data[0] & 1 << can_msg::HAZARD_LIGHTS) _signal = HAZARDS_SIG;
        else _signal = 0;
        _signal_flag = true;
      }
