@@ -9,8 +9,8 @@ Timer status_send_timer;
 Timer horn_timer;
 
 Servo myServo;
-#define restPosition 60
-#define farPosition 160
+#define restPosition 0
+#define farPosition 180
 int16_t servoPosition = restPosition;
 int8_t servoDirection = 1;
 #define servoSweep_speed 5
@@ -51,11 +51,12 @@ bool brake_flag = false;
 bool reegan_brake_flag = false;
 bool reegan_brake = false;
 
+uint32_t brk_timer;
+
 bool flash;
 
 void loop() {
   myCan.read();
-
   if(millis() - flash_timer > 500)
   {
     flash ^= 1;
@@ -123,19 +124,24 @@ void loop() {
   digitalWrite(F_DRIVING_LIGHTS_PIN,myCan.headlights());
   digitalWrite(R_DRIVING_LIGHTS_PIN,myCan.headlights());
 
-  if(analogRead(A0) < 700)
+  if(analogRead(A0) < 800)
   {
-    digitalWrite(BRK_R_PIN,HIGH);
-    digitalWrite(BRK_L_PIN,HIGH);
+    brk_timer = millis();
     Serial.println(analogRead(A0));
-    
+  }
+
+  if (millis()-brk_timer<250)
+  {
+    reegan_brake = 1;
   }
   else
   {
-    digitalWrite(BRK_L_PIN,LOW);
-    digitalWrite(BRK_R_PIN,LOW);
+    reegan_brake = 0;
   }
-  
+
+  digitalWrite(BRK_R_PIN,reegan_brake);
+  digitalWrite(BRK_L_PIN,reegan_brake);
+
   digitalWrite(BLINK_L_PIN,LOW);
   digitalWrite(BLINK_R_PIN,LOW);
   
