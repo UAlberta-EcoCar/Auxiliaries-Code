@@ -9,11 +9,11 @@ Timer status_send_timer;
 Timer horn_timer;
 
 Servo myServo;
-#define restPosition 0
-#define farPosition 180
+#define restPosition 70
+#define farPosition 190
 int16_t servoPosition = restPosition;
 int8_t servoDirection = 1;
-#define servoSweep_speed 5
+#define servoSweep_speed 10
 unsigned long servoSweep_timer;
 
 uint32_t flash_timer;
@@ -130,7 +130,7 @@ void loop() {
     Serial.println(analogRead(A0));
   }
 
-  if (millis()-brk_timer<250)
+  if (millis()-brk_timer<1000)
   {
     reegan_brake = 1;
   }
