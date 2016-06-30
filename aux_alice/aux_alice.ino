@@ -34,6 +34,7 @@ void setup() {
 
   pinMode(A0,INPUT);
 
+  delay(1000);
   myCan.begin();
   
   indicatorTimer.reset();
