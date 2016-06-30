@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include <Timer.h>
 #include "aux_can.h"
 #include <Servo.h>
@@ -10,7 +12,7 @@ Timer horn_timer;
 
 Servo myServo;
 #define restPosition 70
-#define farPosition 190
+#define farPosition 160
 int16_t servoPosition = restPosition;
 int8_t servoDirection = 1;
 #define servoSweep_speed 10
@@ -35,9 +37,9 @@ void setup() {
   pinMode(A0,INPUT);
 
   myCan.begin();
-  
+
   indicatorTimer.reset();
-  
+
   myServo.attach(5);
   myServo.write(servoPosition);
 }
@@ -100,7 +102,7 @@ void loop() {
     }
   }
   else
-  {    
+  {
     if(millis() - servoSweep_timer > servoSweep_speed)
     {
       servoSweep_timer = millis();
@@ -144,7 +146,7 @@ void loop() {
 
   digitalWrite(BLINK_L_PIN,LOW);
   digitalWrite(BLINK_R_PIN,LOW);
-  
+
   if(myCan.signal() == LEFT_SIG)
   {
     digitalWrite(BRK_L_PIN,flash);
@@ -168,5 +170,3 @@ void loop() {
   digitalWrite(LED_0,digitalRead(BRK_R_PIN));
   digitalWrite(LED_1,digitalRead(BRK_L_PIN));
 }
-
-
