@@ -3,6 +3,8 @@
 #include <Timer.h>
 #include "aux_can.h"
 #include <Servo.h>
+#include <avr/interrupt.h>
+#include <avr/wdt.h>
 
 Can myCan;
 
@@ -19,6 +21,26 @@ int8_t servoDirection = 1;
 unsigned long servoSweep_timer;
 
 uint32_t flash_timer;
+
+/*
+ * Watchdog Timer Interrupt
+ */
+ISR(WDT_vect)
+{
+  if(check_overflow())
+  {
+    fix_overflow_error();
+  }
+}
+
+
+void wdtSetup() {
+  cli();
+  MCUSR |= 0;
+  WDTCSR |= B00011000;
+  WDTCSR = B01000111;
+  sei();
+}
 
 void setup() {
   Serial.begin(9600);
