@@ -12,7 +12,7 @@ const int right_switch = A5  ;     // the number of the pushbutton pin
 const int left_switch = A4 ;     // the number of the pushbutton pin
 const int driving = A3 ;     // the number of the pushbutton pin
 const int haz =A2 ;     // the number of the pushbutton pin
-//const int wiper_switch =A1 ;     // the number of the pushbutton pin
+const int wiper_switch =A1 ;     // the number of the pushbutton pin
 const int break_switch = A0 ;
 
 const int L_SIG = 7  ;      // the number of the LED pin
@@ -25,7 +25,7 @@ int right_state = 0;         // variable for reading the pushbutton status
 int left_state = 0;         // variable for reading the pushbutton status
 int driving_state = 0;         // variable for reading the pushbutton status
 int haz_state = 0;         // variable for reading the pushbutton status
-//int wiper_state = 0;         // variable for reading the pushbutton status
+int wiper_state = 0;         // variable for reading the pushbutton status
 int brake_state = 0;
 
 int stateLED_DRIVING = LOW;
@@ -42,7 +42,7 @@ void setup() {
   pinMode(driving, INPUT);
   pinMode(haz, INPUT);
   pinMode(break_switch, INPUT);
-  //pinMode(wiper_switch, INPUT);
+  pinMode(wiper_switch, INPUT);
 
   pinMode(L_SIG, OUTPUT);
   pinMode(R_SIG, OUTPUT);
@@ -60,9 +60,7 @@ void loop() {
   driving_state = digitalRead(driving);
   haz_state = digitalRead(haz);
   brake_state = digitalRead(break_switch);
-  //wiper_state = digitalRead(wiper_switch);
-
-/*
+  wiper_state = digitalRead(wiper_switch);
   if ( wiper_state == HIGH) {
     for ( pos = 0; pos<= 90; pos +=1){
       myservo.write(pos);
@@ -73,7 +71,6 @@ void loop() {
       delay(15);
     }
   }
-  */
   // check if the pushbutton is pressed. If it is, the buttonState is HIGH:
   if (left_state == HIGH) {
 digitalWrite(L_SIG, HIGH);   // turn the LED on (HIGH is the voltage level)
@@ -126,7 +123,7 @@ delay(1000);                       // wait for a second
   }
 
   
-    if(haz_state == HIGH && previous == LOW && millis() - time > debounce) {
+    if(haz_state == HIGH) {
     if(stateLED_HAZ == HIGH){
       stateLED_HAZ = LOW; 
     } else{
